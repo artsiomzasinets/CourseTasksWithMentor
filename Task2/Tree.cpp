@@ -30,9 +30,31 @@ Tree::~Tree() {
     delete[] allocatedMemory;
 }
 
+void Tree::printAll() const {
+//    std::stack<Nod *> stack;
+//    stack.push(root);
+//
+//    while (stack.size() != 0) {
+//        Nod *tempNode = stack.top();
+//        stack.pop();
+//
+//        std::cout << "key/color:" << tempNode->key << '/';
+//        if( tempNode->color == COLOR::black)
+//            std::cout << "black" <<
+//
+//        if (tempNode->rightChild != &emptyNod) {
+//            stack.push(tempNode->rightChild);
+//        }
+//        if (tempNode->leftChild != &emptyNod) {
+//            stack.push(tempNode->leftChild);
+//        }
+//
+//    }
+}
+
 
 Nod *Tree::grandparent(Nod *theNod) {
-    if (theNod != nullptr && theNod->parent != nullptr) {
+    if (theNod != &emptyNod && theNod->parent != nullptr) {
         return theNod->parent->parent;
     } else {
         return nullptr;
@@ -107,10 +129,62 @@ bool Tree::findAndInsert(Nod *theNod) {
     }
 }
 
+
+void Tree::rotateLeft(Nod *insertedNod) {
+    Nod *rootOfSubtree = insertedNod->rightChild;
+
+    rootOfSubtree->parent = insertedNod->parent;
+    if (insertedNod->parent != nullptr) {
+        if (insertedNod->parent->leftChild == insertedNod) {
+            insertedNod->parent->leftChild = rootOfSubtree;
+        } else {
+            insertedNod->parent->rightChild = rootOfSubtree;
+        }
+    }else{//it's a new root
+        root = rootOfSubtree;
+    }
+
+    insertedNod->rightChild = rootOfSubtree->leftChild;
+    if (rootOfSubtree->leftChild !=
+        nullptr) {
+        rootOfSubtree->leftChild->parent = insertedNod;
+    }
+
+    insertedNod->parent = rootOfSubtree;
+    rootOfSubtree->leftChild = insertedNod;
+
+}
+
+void Tree::rotateRight(Nod *insertedNod) {
+    Nod *rootOfSubtree = insertedNod->leftChild;
+
+    rootOfSubtree->parent = insertedNod->parent;
+    if (insertedNod->parent != nullptr) {
+        if (insertedNod->parent->leftChild == insertedNod) {
+            insertedNod->parent->leftChild = rootOfSubtree;
+        } else {
+            insertedNod->parent->rightChild = rootOfSubtree;
+        }
+    }else{//it's a new root
+        root = rootOfSubtree;
+    }
+
+    insertedNod->leftChild = rootOfSubtree->rightChild;
+    if (rootOfSubtree->rightChild !=
+        nullptr) {
+        rootOfSubtree->rightChild->parent = insertedNod;
+    }
+
+    insertedNod->parent = rootOfSubtree;
+    rootOfSubtree->rightChild = insertedNod;
+
+}
+
+
 void Tree::check(Nod *nodToInsert) {//checking if everything is ok, Is it tree correct
 
     if (nodToInsert->parent == nullptr) {
-        nodToInsert->parent->color = COLOR::black;
+        nodToInsert->color = COLOR::black;
         return;
     }
 
@@ -123,6 +197,9 @@ void Tree::check(Nod *nodToInsert) {//checking if everything is ok, Is it tree c
         insertCase1(nodToInsert);
     } else { // otherwise uncle is black
 
+        insertCase3(nodToInsert);
+
+        insertCase2(nodToInsert);
     }
 }
 
@@ -157,10 +234,9 @@ void Tree::insert(size_t theKey) {
     }
 
 
-    if (findAndInsert(
-            nodToInsert)) {// if it's possible  the function inserts "nodToInsert" but if something goes wrong it returns "false"
+    if (findAndInsert(nodToInsert)) {// if it's possible  the function inserts "nodToInsert"
+        // but if something goes wrong it returns "false"
         check(nodToInsert);
-
     } else {
         return;
     }
@@ -171,27 +247,40 @@ void Tree::insert(size_t theKey) {
 
 void Tree::insertCase1(Nod *insertedNod) {
 
-    Nod *tempNod = insertedNod;// firstly it's for "insertedNod" then it'll be using for grandparents
-
-
     Nod *uncl = uncle(insertedNod);
 
     insertedNod->parent->color = COLOR::black;// changing a parent color
     insertedNod->parent->parent->color = COLOR::red;// for grandparent
     uncl->color = COLOR::black;
 
-    tempNod = uncl->parent;
 
-    check(insertedNod);
+    check(uncl->parent);
 
-
-}
-
-void Tree::insertCase2(Nod *) { // for rotating
 
 }
 
-void Tree::insertCase3(Nod *) {
+void Tree::insertCase2(Nod *insertedNod) { // for rotating
+    Nod *grandP = grandparent(insertedNod);
+
+    insertedNod->parent->color = COLOR::black;
+    grandP->color = COLOR::red;
+    if ((insertedNod->parent->leftChild == insertedNod) && (insertedNod->parent == grandP->leftChild)) {
+        rotateRight(grandP);
+    } else if ((insertedNod->parent->rightChild == insertedNod) && (insertedNod->parent == grandP->rightChild)) {
+        rotateLeft(grandP);
+    }
+}
+
+void Tree::insertCase3(Nod *insertedNod) {// for small rotating
+
+    Nod *grandP = grandparent(insertedNod);
+    if ((insertedNod->parent->rightChild == insertedNod) && (insertedNod->parent == grandP->leftChild)) {
+        rotateLeft(insertedNod->parent);
+    } else if ((insertedNod->parent->leftChild == insertedNod) && (insertedNod->parent == grandP->rightChild)) {
+        rotateRight(insertedNod->parent);
+        // insertedNod = insertedNod->rightChild;
+    }
+
 
 }
 
@@ -199,6 +288,10 @@ void Tree::insertCase3(Nod *) {
 void Tree::remove(size_t theKey) {
 
 }
+
+
+
+
 
 
 

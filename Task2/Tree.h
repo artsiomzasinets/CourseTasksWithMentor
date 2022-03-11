@@ -26,6 +26,8 @@ public:
     void insert(size_t);
     void remove(size_t);
     bool find(size_t) const;
+    void printAll()const;
+
 private:// insert cases
     void insertCase1(Nod*);
     void insertCase2(Nod*);
@@ -37,6 +39,9 @@ private:
     Nod* uncle(Nod*);
     bool findAndInsert(Nod*);
     void check(Nod*);
+    void rotateLeft(Nod*);
+    void rotateRight(Nod*);
+private:
 
 
     Nod* allocatedMemory;// allocated memory for using by "placement new"
