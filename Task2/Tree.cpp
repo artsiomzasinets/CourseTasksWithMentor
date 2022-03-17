@@ -207,10 +207,17 @@ void Tree::checkAfterInsert(Nod *nodToInsert) {//checking if everything is ok, I
     if (uncle(nodToInsert)->color == COLOR::red) {// if uncle is red, and parent is red!!
         insertCase1(nodToInsert);
     } else { // otherwise uncle is black
+            Nod *grandP = grandparent(nodToInsert);
+            if ((nodToInsert->parent->rightChild == nodToInsert) && (nodToInsert->parent == grandP->leftChild)) {
+                insertCase3(nodToInsert);
+                insertCase2(nodToInsert->leftChild);
+            } else if ((nodToInsert->parent->leftChild == nodToInsert) && (nodToInsert->parent == grandP->rightChild)) {
+                insertCase3(nodToInsert);
+                insertCase2(nodToInsert->rightChild);
+            }else{
+                insertCase2(nodToInsert);
+            }
 
-        insertCase3(nodToInsert);
-
-        insertCase2(nodToInsert);
     }
 }
 
@@ -323,7 +330,57 @@ void Tree::removeCase3(Nod *theNod) {
 }
 
 void Tree::removeCase1(Nod * theNod) {
-    //TODO
+    Nod* grandP = grandparent(theNod);
+    Nod* uncl = uncle(theNod);
+
+    if(theNod->parent->leftChild == theNod)
+        theNod->parent->leftChild = &emptyNod;
+    else
+        theNod->parent->rightChild = &emptyNod;
+
+    if(grandP->color == COLOR::red){
+
+        if ((theNod->parent->rightChild == theNod) && (theNod->parent == grandP->leftChild)) {
+
+            if(uncl->rightChild->color == COLOR::red){
+                rotateLeft(uncl);
+                rotateRight(grandP);
+            }else if(uncl->leftChild->color == COLOR::red){
+                rotateRight(grandP);
+            }else{// if uncle doesn't have red child
+                uncl->color = COLOR::red;
+                grandP->color = COLOR::black;
+            }
+
+        } else if ((theNod->parent->leftChild == theNod) && (theNod->parent == grandP->rightChild)) {
+            if(uncl->leftChild->color == COLOR::red){
+                rotateRight(uncl);
+                rotateLeft(grandP);
+            }else if(uncl->rightChild->color == COLOR::red){
+                rotateLeft(grandP);
+            }else{// if uncle doesn't have red child
+                uncl->color = COLOR::red;
+                grandP->color = COLOR::black;
+            }
+        }
+
+
+
+    }else{//if grandparent has black color
+
+        if(uncl->color == COLOR::red){
+
+            if(uncl->rightChild->color == COLOR::black){
+
+            }
+
+        }else{//uncle is black
+
+        }
+
+    }
+
+
 }
 
 void Tree::removeCase4(Nod *theNod) {
