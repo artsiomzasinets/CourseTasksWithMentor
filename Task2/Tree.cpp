@@ -371,7 +371,7 @@ void Tree::removeCase1(Nod * theNod) {
         if(uncl->color == COLOR::red){
 
             if(uncl->rightChild->color == COLOR::black){
-
+            //TODO
             }
 
         }else{//uncle is black
