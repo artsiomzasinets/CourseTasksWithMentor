@@ -31,25 +31,27 @@ Tree::~Tree() {
 }
 
 void Tree::printAll() const {
-//    std::stack<Nod *> stack;
-//    stack.push(root);
-//
-//    while (stack.size() != 0) {
-//        Nod *tempNode = stack.top();
-//        stack.pop();
-//
-//        std::cout << "key/color:" << tempNode->key << '/';
-//        if( tempNode->color == COLOR::black)
-//            std::cout << "black" <<
-//
-//        if (tempNode->rightChild != &emptyNod) {
-//            stack.push(tempNode->rightChild);
-//        }
-//        if (tempNode->leftChild != &emptyNod) {
-//            stack.push(tempNode->leftChild);
-//        }
-//
-//    }
+    std::stack<Nod *> stack;
+    stack.push(root);
+
+    while (stack.size() != 0) {
+        Nod *tempNode = stack.top();
+        stack.pop();
+
+        std::cout << "key/color:" << tempNode->key << '/';
+        if( tempNode->color == COLOR::black)
+            std::cout << "black" << std::endl;
+        else
+            std::cout << "red" << std::endl;
+
+        if (tempNode->rightChild != &emptyNod) {
+            stack.push(tempNode->rightChild);
+        }
+        if (tempNode->leftChild != &emptyNod) {
+            stack.push(tempNode->leftChild);
+        }
+
+    }
 }
 
 
@@ -69,6 +71,14 @@ Nod *Tree::uncle(Nod *theNod) {
         return grandP->rightChild;
     } else {
         return grandP->leftChild;
+    }
+}
+
+Nod* Tree::sibling(Nod *theNod) {
+    if(theNod->parent->leftChild == theNod){
+        return theNod->parent->rightChild;
+    }else{
+        return  theNod->parent->leftChild;
     }
 }
 
@@ -127,6 +137,7 @@ bool Tree::findAndInsert(Nod *theNod) {
             stack.push(tempNod->rightChild);
         }
     }
+    return false;
 }
 
 
@@ -181,7 +192,7 @@ void Tree::rotateRight(Nod *insertedNod) {
 }
 
 
-void Tree::check(Nod *nodToInsert) {//checking if everything is ok, Is it tree correct
+void Tree::checkAfterInsert(Nod *nodToInsert) {//checking if everything is ok, Is it tree correct
 
     if (nodToInsert->parent == nullptr) {
         nodToInsert->color = COLOR::black;
@@ -222,7 +233,7 @@ void Tree::insert(size_t theKey) {
 
 
     // if root exists it's found a leaf to insert
-    Nod *nodToInsert = nullptr;
+    Nod *nodToInsert;
     if (currentNumberOfNod + 1 < numberOfNod) {//checking for range
         nodToInsert = new(movePointer) Nod();// create red node to insert
         nodToInsert->key = theKey;
@@ -236,7 +247,7 @@ void Tree::insert(size_t theKey) {
 
     if (findAndInsert(nodToInsert)) {// if it's possible  the function inserts "nodToInsert"
         // but if something goes wrong it returns "false"
-        check(nodToInsert);
+        checkAfterInsert(nodToInsert);
     } else {
         return;
     }
@@ -254,7 +265,7 @@ void Tree::insertCase1(Nod *insertedNod) {
     uncl->color = COLOR::black;
 
 
-    check(uncl->parent);
+    checkAfterInsert(uncl->parent);
 
 
 }
@@ -272,20 +283,114 @@ void Tree::insertCase2(Nod *insertedNod) { // for rotating
 }
 
 void Tree::insertCase3(Nod *insertedNod) {// for small rotating
-
     Nod *grandP = grandparent(insertedNod);
     if ((insertedNod->parent->rightChild == insertedNod) && (insertedNod->parent == grandP->leftChild)) {
         rotateLeft(insertedNod->parent);
     } else if ((insertedNod->parent->leftChild == insertedNod) && (insertedNod->parent == grandP->rightChild)) {
         rotateRight(insertedNod->parent);
-        // insertedNod = insertedNod->rightChild;
     }
-
-
 }
 
 
 void Tree::remove(size_t theKey) {
+    Nod* nodToRemove = findElemToRemove(theKey);
+    if(nodToRemove != nullptr){
+        deleteTheNod(nodToRemove);
+    }else{
+        std::cout << "Element is not found" << std::endl;
+    }
+}
+
+
+
+void Tree::removeCase2(Nod *theNod) {
+    if(theNod->parent->leftChild == theNod)
+        theNod->parent->leftChild = &emptyNod;
+    else
+        theNod->parent->rightChild = &emptyNod;
+}
+
+void Tree::removeCase3(Nod *theNod) {
+    Nod* child = theNod->leftChild == &emptyNod ? theNod->rightChild : theNod->leftChild;
+
+    if(theNod->parent->leftChild == theNod)
+        theNod->parent->leftChild = child;
+    else
+        theNod->parent->rightChild = child;
+
+    child->color = COLOR::black;
+    child->leftChild = child->rightChild = &emptyNod;
+}
+
+void Tree::removeCase1(Nod * theNod) {
+    //TODO
+}
+
+void Tree::removeCase4(Nod *theNod) {
+
+}
+
+void Tree::removeCase5(Nod *theNod) {
+
+}
+
+void Tree::removeCase6(Nod *theNod) {
+
+}
+
+Nod *Tree::findElemToRemove(size_t theKey) {
+    std::stack<Nod*> stack;
+    stack.push(root);
+
+    Nod* tempPtr;
+    while (stack.size() != 0){
+        tempPtr = stack.top();
+        stack.pop();
+
+        if(tempPtr->key == theKey){
+            return tempPtr;
+        }
+
+        if(tempPtr->leftChild != &emptyNod)
+            stack.push(tempPtr->leftChild);
+        if(tempPtr->rightChild != &emptyNod)
+            stack.push(tempPtr->rightChild);
+
+    }
+
+    return nullptr;
+}
+
+void Tree::deleteTheNod(Nod *theNod) {
+    if((theNod->leftChild == &emptyNod) && (theNod-> rightChild == &emptyNod)){
+
+        if(theNod->parent == nullptr){
+            root = nullptr;
+        }
+
+        if(theNod->color == COLOR::red){
+            removeCase2(theNod);
+        }else{
+            removeCase1(theNod);
+        }
+    }else if((theNod->leftChild != &emptyNod) && (theNod-> rightChild != &emptyNod)){// find the max elem in leftchild
+        std::stack<Nod*> stack;
+        stack.push(theNod->leftChild);
+        Nod* tempPtr;
+        while (stack.size() != 0){
+            tempPtr = stack.top();
+            stack.pop();
+
+            if(tempPtr->rightChild == &emptyNod){
+                theNod->key = tempPtr->key;
+                deleteTheNod(tempPtr);
+                break;
+            }
+            stack.push(tempPtr->rightChild);
+        }
+    }else{//if nod has a child
+        removeCase3(theNod);
+    }
 
 }
 
