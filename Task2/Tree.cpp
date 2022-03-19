@@ -368,10 +368,16 @@ void Tree::removeCase1(Nod * theNod) {
 
     }else{//if grandparent has black color
 
-        if(uncl->color == COLOR::red){
+        if(uncl->color == COLOR::red){// if uncle is red
 
-            if(uncl->rightChild->color == COLOR::black){
-            
+            if(uncl->rightChild->color == COLOR::black){// uncle's child is black
+                Nod* unclChild = uncl->rightChild;
+                if(unclChild->leftChild->color == COLOR::red || unclChild->rightChild->color == COLOR::black){
+                    //TODO something
+                }else{// un
+
+                }
+
             }
 
         }else{//uncle is black
