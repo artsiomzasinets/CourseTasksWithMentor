@@ -74,13 +74,6 @@ Nod *Tree::uncle(Nod *theNod) {
     }
 }
 
-Nod* Tree::sibling(Nod *theNod) {
-    if(theNod->parent->leftChild == theNod){
-        return theNod->parent->rightChild;
-    }else{
-        return  theNod->parent->leftChild;
-    }
-}
 
 
 bool Tree::find(size_t theKey) const {
@@ -309,34 +302,14 @@ void Tree::remove(size_t theKey) {
 }
 
 
+void Tree::removeCase1(Nod * theNod, Nod* grandP, Nod* uncl,bool isRemoved) {
 
-void Tree::removeCase2(Nod *theNod) {
-    if(theNod->parent->leftChild == theNod)
-        theNod->parent->leftChild = &emptyNod;
-    else
-        theNod->parent->rightChild = &emptyNod;
-}
-
-void Tree::removeCase3(Nod *theNod) {
-    Nod* child = theNod->leftChild == &emptyNod ? theNod->rightChild : theNod->leftChild;
-
-    if(theNod->parent->leftChild == theNod)
-        theNod->parent->leftChild = child;
-    else
-        theNod->parent->rightChild = child;
-
-    child->color = COLOR::black;
-    child->leftChild = child->rightChild = &emptyNod;
-}
-
-void Tree::removeCase1(Nod * theNod) {
-    Nod* grandP = grandparent(theNod);
-    Nod* uncl = uncle(theNod);
-
-    if(theNod->parent->leftChild == theNod)
-        theNod->parent->leftChild = &emptyNod;
-    else
-        theNod->parent->rightChild = &emptyNod;
+    if(isRemoved == false){
+        if(theNod->parent->leftChild == theNod)
+            theNod->parent->leftChild = &emptyNod;
+        else
+            theNod->parent->rightChild = &emptyNod;
+    }
 
     if(grandP->color == COLOR::red){
 
@@ -370,18 +343,62 @@ void Tree::removeCase1(Nod * theNod) {
 
         if(uncl->color == COLOR::red){// if uncle is red
 
-            if(uncl->rightChild->color == COLOR::black){// uncle's child is black
-                Nod* unclChild = uncl->rightChild;
-                if(unclChild->leftChild->color == COLOR::red || unclChild->rightChild->color == COLOR::black){
-                    //TODO something
-                }else{// un
+            if(uncl->rightChild->color == COLOR::black || uncl->leftChild->color == COLOR::black){// uncle's child is black
+                Nod* unclChild;
+                if(uncl->rightChild->color == COLOR::black){
+                    unclChild = uncl->rightChild;
+                }else{
+                    unclChild = uncl->leftChild;
+                }
 
+                if(unclChild->leftChild->color == COLOR::red || unclChild->rightChild->color == COLOR::red ){//if uncle's child's child is red
+
+                    if(unclChild->rightChild->color == COLOR::red && grandP->leftChild == uncl){
+                        uncl->rightChild->color = COLOR::black;
+                        rotateLeft(uncl);
+                        rotateRight(grandP);
+                    } else if( grandP->rightChild == uncl){
+                        uncl->leftChild->color = COLOR::black;
+                        rotateRight(uncl);
+                        rotateLeft(grandP);
+                    }
+
+                }else {//if uncle's child's child is black
+                    uncl->color = COLOR::black;
+                    unclChild->color = COLOR::red;
+                    if(grandP->leftChild == uncl){
+                        rotateRight(grandP);
+                    }else if(grandP->rightChild == uncl){
+                        rotateLeft(grandP);
+                    }
                 }
 
             }
 
         }else{//uncle is black
+            if(uncl->leftChild->color == COLOR::red || uncl->rightChild->color == COLOR::red ){// if uncle has a red child
 
+                if(uncl->rightChild->color == COLOR::red){
+                    uncl->rightChild->color = COLOR::black;
+                    rotateLeft(uncl);
+                    rotateRight(grandP);
+                }else{
+                    uncl->leftChild->color = COLOR::black;
+                    rotateRight(uncl);
+                    rotateLeft(grandP);
+                }
+
+
+            }else {// if uncle doesn't have any red child
+                uncl->color = COLOR::red;
+
+                Nod* g = grandparent(grandP);
+                Nod* u = uncle(grandP);
+                if(g == nullptr){
+                    return;
+                }
+                removeCase1(grandP,g,u,true);// recursion up
+            }
         }
 
     }
@@ -389,17 +406,6 @@ void Tree::removeCase1(Nod * theNod) {
 
 }
 
-void Tree::removeCase4(Nod *theNod) {
-
-}
-
-void Tree::removeCase5(Nod *theNod) {
-
-}
-
-void Tree::removeCase6(Nod *theNod) {
-
-}
 
 Nod *Tree::findElemToRemove(size_t theKey) {
     std::stack<Nod*> stack;
@@ -425,18 +431,26 @@ Nod *Tree::findElemToRemove(size_t theKey) {
 }
 
 void Tree::deleteTheNod(Nod *theNod) {
-    if((theNod->leftChild == &emptyNod) && (theNod-> rightChild == &emptyNod)){
+    if((theNod->leftChild == &emptyNod) && (theNod-> rightChild == &emptyNod))  {
 
         if(theNod->parent == nullptr){
             root = nullptr;
         }
 
+
         if(theNod->color == COLOR::red){
-            removeCase2(theNod);
-        }else{
-            removeCase1(theNod);
+
+            if(theNod->parent->leftChild == theNod)
+                theNod->parent->leftChild = &emptyNod;
+            else
+                theNod->parent->rightChild = &emptyNod;
+
+        }else{//if theNod is black
+            Nod* grandP = grandparent(theNod);
+            Nod* uncl = uncle(theNod);
+            removeCase1(theNod,grandP,uncl,false);
         }
-    }else if((theNod->leftChild != &emptyNod) && (theNod-> rightChild != &emptyNod)){// find the max elem in leftchild
+    }else if((theNod->leftChild != &emptyNod) && (theNod-> rightChild != &emptyNod)){// find the max elem
         std::stack<Nod*> stack;
         stack.push(theNod->leftChild);
         Nod* tempPtr;
@@ -452,7 +466,17 @@ void Tree::deleteTheNod(Nod *theNod) {
             stack.push(tempPtr->rightChild);
         }
     }else{//if nod has a child
-        removeCase3(theNod);
+
+        Nod* child = theNod->leftChild == &emptyNod ? theNod->rightChild : theNod->leftChild;
+
+        if(theNod->parent->leftChild == theNod)
+            theNod->parent->leftChild = child;
+        else
+            theNod->parent->rightChild = child;
+
+        child->color = COLOR::black;
+        child->leftChild = child->rightChild = &emptyNod;
+
     }
 
 }

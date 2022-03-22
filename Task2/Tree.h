@@ -33,16 +33,10 @@ private:// insert cases
     void insertCase2(Nod*);
     void insertCase3(Nod*);
 private:// remove cases
-    void removeCase1(Nod*);//if nod has black color and doesn't have children
-    void removeCase2(Nod*);//if nod has red color and doesn't have children
-    void removeCase3(Nod*);//if nod has red/black color and has a child
-    void removeCase4(Nod*);
-    void removeCase5(Nod*);
-    void removeCase6(Nod*);
+    void removeCase1(Nod*,Nod*,Nod*,bool);//if nod has black color and doesn't have children
 private:
     Nod* grandparent(Nod*);
     Nod* uncle(Nod*);
-    Nod* sibling(Nod*);
     bool findAndInsert(Nod*);
     Nod* findElemToRemove(size_t);
     void deleteTheNod(Nod*);
