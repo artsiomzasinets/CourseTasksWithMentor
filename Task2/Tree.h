@@ -37,9 +37,9 @@ private:
     Nod* moveMemoryPtr;
     size_t currentSize;// size of Tree
 private:
-    Nod* grandparent(Nod*);
-    Nod* uncle(Nod*);
-    Nod* sibling(Nod*);
+    Nod* grandparent(Nod*)const;
+    Nod* uncle(Nod*)const;
+    Nod* sibling(Nod*)const;
 
     void rotateLeft(Nod*);
     void rotateRight(Nod*);
@@ -47,7 +47,7 @@ private:
     void grandparendIsNullptr(Nod*);
 private://insert things
     bool findThenInsert(Nod*);
-    void checkAfterInsert(Nod*);
+    void checkAfterInsert(Nod*) const;
     //cases
     void insertCase1(Nod*);
     void insertCase2(Nod*);
@@ -55,6 +55,15 @@ private://insert things
 
 
 private://erase cases
+    Nod* findEraseNod(const Key&) const;
+    Nod* findDelete(Nod*);
+
+    void eraseCase1(Nod*);// theNod is red and have only leafs
+    void eraseCase2(Nod*);// theNod have only one leaf
+
+    void eraseCase3(Nod*);//theNod is black and have only leafs
+    void eraseCase31(Nod*);
+    void eraseCase32(Nod*);
 
 };
 template<typename Key>
@@ -117,7 +126,7 @@ Tree<Key>::~Tree(){
 
 
 template<typename Key>
-TNod<Key> Tree<Key>::grandparent(Nod *theNod) {
+TNod<Key> Tree<Key>::grandparent(Nod *theNod) const {
 
     if(theNod == nullptr){
         return &emptyNod;//if it's returned, something goes wrong
@@ -131,7 +140,7 @@ TNod<Key> Tree<Key>::grandparent(Nod *theNod) {
 }
 
 template<typename Key>
-TNod<Key> Tree<Key>::uncle(Nod *theNod) {
+TNod<Key> Tree<Key>::uncle(Nod *theNod) const{
     Nod* grandPa = grandparent(theNod);
     if(grandPa == &emptyNod){
         return &emptyNod;// something has gone wrong
@@ -150,7 +159,7 @@ TNod<Key> Tree<Key>::uncle(Nod *theNod) {
 }
 
 template<typename Key>
-TNod<Key> Tree<Key>::sibling(Nod *theNod) {
+TNod<Key> Tree<Key>::sibling(Nod *theNod) const{
     if(theNod->parent != nullptr){
         if(theNod->parent->rightChild == theNod ){
             return theNod->parent->leftChild;
@@ -267,7 +276,7 @@ bool Tree<Key>::findThenInsert(Nod *theNod) {
 }
 
 template<typename Key>
-void Tree<Key>::checkAfterInsert(Tree::Nod *theNod) {
+void Tree<Key>::checkAfterInsert(Tree::Nod *theNod) const{
     if (theNod->parent == nullptr) {
         theNod->color = COLOR::black;
         return;
@@ -347,7 +356,7 @@ template<typename Key>
 void Tree<Key>::insert(Key key) {
     Nod* theNod;
     if(currentSize + 1  <= sizeToAllocate){
-        theNod = new(moveMemoryPtr) Nod(key);
+        theNod = new(moveMemoryPtr) Nod(key);//TODO alloc
         moveMemoryPtr++;
         currentSize++;
     }else{
@@ -363,20 +372,92 @@ void Tree<Key>::insert(Key key) {
 #endif
         return;
     }
+}
 
+template<typename Key>
+TNod<Key> Tree<Key>::findEraseNod(const Key& key) const{
 
+    std::stack<Nod*> stack;
+    stack.push(root);
+    Nod* tempNod;
 
+    while (stack.size() != 0){
+        tempNod = stack.top();
+        stack.pop();
 
+        if(tempNod->key == key){
+            return tempNod;
+        }
+
+        if(tempNod->key < key){
+            stack.push(tempNod->rightChild);
+        }else if(tempNod->kef > key){
+            stack.push(tempNod->leftChild);
+        }
+    }
+    return nullptr;
+}
+
+template<typename Key>
+TNod<Key> Tree<Key>::findDelete(Nod *theNod) {//find a max element in subtree then swap
+    Nod* tempNod = theNod;
+    while (true){
+        if(tempNod->rightChild == &emptyNod){
+            theNod->key = tempNod->key;
+            return tempNod;
+        }
+        tempNod = tempNod->rightChild;
+    }
+}
+
+template<typename Key>
+void Tree<Key>::eraseCase1(Tree::Nod *) {
 
 }
 
+template<typename Key>
+void Tree<Key>::eraseCase2(Tree::Nod *) {
 
+}
 
+template<typename Key>
+void Tree<Key>::eraseCase3(Tree::Nod *) {
 
+}
 
+template<typename Key>
+void Tree<Key>::remove(const Key &key) {
+    if(root == nullptr){
+        return;
+    }
+    Nod* nodToErase = findEraseNod(key);
 
+    if(nodToErase->parent == nullptr){
+        root = nullptr;//TODO alloc
+    }
 
+    if(nodToErase == nullptr){
+#ifdef DEBUG
+      std::cout << "Elem doesn't exist" << std::endl;
+#endif
+        return;
+    }
 
+    if(nodToErase->leftChild != &emptyNod && nodToErase->rightChild != &emptyNod) {
+        nodToErase = findDelete(nodToErase->leftChild);
+    }
+
+    if(nodToErase->leftChild == &emptyNod && nodToErase->rightChild == &emptyNod){
+        if(nodToErase->color == COLOR::red){
+            eraseCase1(nodToErase);
+        }else{// nodToErase is black
+            eraseCase3(nodToErase);
+        }
+    }else {// nodToErase has one leaf
+        eraseCase2(nodToErase);
+    }
+
+}
 
 
 #endif //Tree_H_
