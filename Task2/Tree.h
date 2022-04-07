@@ -1,10 +1,11 @@
 #ifndef Tree_H_
 #define Tree_H_
 
-#define DEBUG
+//#define DEBUG
 
 #include<stack>
 #include<iostream>
+#include<exception>
 
 template<typename Key>
 class Tree {// RB tree
@@ -47,7 +48,7 @@ private:
     void grandparendIsNullptr(Nod*);
 private://insert things
     bool findThenInsert(Nod*);
-    void checkAfterInsert(Nod*) const;
+    void checkAfterInsert(Nod*);
     //cases
     void insertCase1(Nod*);
     void insertCase2(Nod*);
@@ -55,7 +56,7 @@ private://insert things
 
 
 private://erase cases
-    Nod* findEraseNod(const Key&) const;
+    Nod* findEraseNod(const Key&);
     Nod* findDelete(Nod*);
 
     void eraseCase1(Nod*);// theNod is red and have only leafs
@@ -171,6 +172,8 @@ TNod<Key> Tree<Key>::sibling(Nod *theNod) const{
     }
 }
 
+
+
 template<typename Key>
 void Tree<Key>::rotateLeft(Nod * theNod) {
 
@@ -276,9 +279,10 @@ bool Tree<Key>::findThenInsert(Nod *theNod) {
 }
 
 template<typename Key>
-void Tree<Key>::checkAfterInsert(Tree::Nod *theNod) const{
+void Tree<Key>::checkAfterInsert(Tree::Nod *theNod){
     if (theNod->parent == nullptr) {
         theNod->color = COLOR::black;
+        root = theNod;
         return;
     }
 
@@ -375,7 +379,7 @@ void Tree<Key>::insert(Key key) {
 }
 
 template<typename Key>
-TNod<Key> Tree<Key>::findEraseNod(const Key& key) const{
+TNod<Key> Tree<Key>::findEraseNod(const Key& key){
 
     std::stack<Nod*> stack;
     stack.push(root);
@@ -390,9 +394,11 @@ TNod<Key> Tree<Key>::findEraseNod(const Key& key) const{
         }
 
         if(tempNod->key < key){
-            stack.push(tempNod->rightChild);
-        }else if(tempNod->kef > key){
-            stack.push(tempNod->leftChild);
+            if(tempNod->rightChild != &emptyNod)
+                stack.push(tempNod->rightChild);
+        }else if(tempNod->key > key){
+            if(tempNod->leftChild != &emptyNod)
+                stack.push(tempNod->leftChild);
         }
     }
     return nullptr;
@@ -411,17 +417,137 @@ TNod<Key> Tree<Key>::findDelete(Nod *theNod) {//find a max element in subtree th
 }
 
 template<typename Key>
-void Tree<Key>::eraseCase1(Tree::Nod *) {
+void Tree<Key>::eraseCase1(Nod *theNod) {
+    Nod* parent = theNod->parent;
 
+    if(parent->leftChild == theNod){
+        parent->leftChild = &emptyNod;
+    }else{// parent->rightChild == theNod
+        parent->rightChild = &emptyNod;
+    }
+
+    //delete theNod;
 }
 
 template<typename Key>
-void Tree<Key>::eraseCase2(Tree::Nod *) {
-
+void Tree<Key>::eraseCase2(Nod *theNod) {
+    if(theNod->rightChild == &emptyNod){
+        theNod->key = theNod->leftChild->key;
+       // delete theNod->leftChild;
+        theNod->leftChild = &emptyNod;
+    }else{//theNod->leftChild == &emptyNod
+        theNod->key = theNod->rightChild->key;
+       // delete theNod->rightChild;
+        theNod->rightChild = &emptyNod;
+    }
 }
 
 template<typename Key>
-void Tree<Key>::eraseCase3(Tree::Nod *) {
+void Tree<Key>::eraseCase3(Nod *theNod) {
+    if(theNod->parent == nullptr){
+        theNod->color = COLOR::black;
+        root = theNod;
+        return;
+    }
+
+    Nod* parent = theNod->parent;
+    Nod* sibl = sibling(theNod);
+
+    if(parent->color == COLOR::red){//silbing is only black
+
+        if(sibl->rightChild->color == COLOR::red || sibl->leftChild->color == COLOR::red){//TODO Maybe there is emptyNod problem
+
+            if(parent->leftChild == sibl){
+                if(sibl->rightChild->color == COLOR::red){
+                    rotateLeft(sibl);
+                    rotateRight(parent);
+                    parent->color = COLOR::black;
+                }else{//if leftChild is red
+                    rotateRight(parent);
+                }
+                return;
+            }else{//parent->rightChild == sibl
+
+                if(sibl->leftChild->color == COLOR::red){
+                    rotateRight(sibl);
+                    rotateLeft(parent);
+                    parent->color = COLOR::black;
+                }else{//if leftChild is red
+                    rotateLeft(parent);
+                }
+                return;
+            }
+        }else {//sibl doesn't have a red child
+            parent->color = COLOR::black;
+            sibl->color = COLOR::red;
+        }
+
+
+    }else{//parent->color == COLOR::black
+        Nod* siblRightChild = sibl->rightChild;
+        Nod* siblLeftChild = sibl->leftChild;
+        if(sibl->color == COLOR::red){
+            if(parent->leftChild == sibl){
+                if(siblRightChild->leftChild->color == COLOR::red){
+                        siblRightChild->leftChild->color = COLOR::black;
+                        rotateLeft(sibl);
+                        rotateRight(parent);
+                }else if(siblRightChild->rightChild->color == COLOR::red){
+                    rotateLeft(sibl);
+                    rotateRight(parent);
+                }else{//doesn't have a red child
+                    sibl->color = COLOR::black;
+                    siblRightChild->color = COLOR::red;
+                    rotateRight(parent);
+                }
+
+            }else if(parent->rightChild == sibl){
+                if(siblLeftChild->leftChild->color == COLOR::red){
+                    rotateRight(sibl);
+                    rotateLeft(parent);
+                }else if(siblLeftChild->rightChild->color == COLOR::red){
+                    siblLeftChild->rightChild->color = COLOR::black;
+                    rotateRight(sibl);
+                    rotateLeft(parent);
+                }else{//doesn't have a red child
+                    sibl->color = COLOR::black;
+                    siblLeftChild->color = COLOR::red;
+                    rotateLeft(parent);
+                }
+            }
+
+        }else{//sibl->color == COLOR::black
+            if(parent->leftChild == sibl){
+                if(siblRightChild->color == COLOR::red){
+                    siblRightChild->color = COLOR::black;
+                    rotateLeft(sibl);
+                    rotateRight(parent);
+                }else if(siblLeftChild->color == COLOR::red){
+                    siblLeftChild->color = COLOR::black;
+                    rotateRight(parent);
+                }else{//doesn't have a red child
+                    sibl->color = COLOR::red;
+                    eraseCase3(parent);
+                }
+            }else{//parent->rightChild == sibl
+                if(siblLeftChild->color == COLOR::red){
+                    siblLeftChild->color = COLOR::black;
+                    rotateRight(sibl);
+                    rotateLeft(parent);
+                }else if(siblRightChild->color == COLOR::red){
+                    siblRightChild->color = COLOR::black;
+                    rotateLeft(parent);
+                }else{//doesn't have a red child
+                    sibl->color = COLOR::red;
+                    eraseCase3(parent);
+                }
+            }
+        }
+    }
+
+
+
+
 
 }
 
@@ -432,16 +558,19 @@ void Tree<Key>::remove(const Key &key) {
     }
     Nod* nodToErase = findEraseNod(key);
 
-    if(nodToErase->parent == nullptr){
-        root = nullptr;//TODO alloc
-    }
-
     if(nodToErase == nullptr){
 #ifdef DEBUG
-      std::cout << "Elem doesn't exist" << std::endl;
+        std::cout << "Elem doesn't exist" << std::endl;
 #endif
         return;
     }
+
+    if(nodToErase->parent == nullptr){
+        //delete root;
+        root = nullptr;//TODO alloc
+    }
+
+
 
     if(nodToErase->leftChild != &emptyNod && nodToErase->rightChild != &emptyNod) {
         nodToErase = findDelete(nodToErase->leftChild);
@@ -456,7 +585,6 @@ void Tree<Key>::remove(const Key &key) {
     }else {// nodToErase has one leaf
         eraseCase2(nodToErase);
     }
-
 }
 
 
