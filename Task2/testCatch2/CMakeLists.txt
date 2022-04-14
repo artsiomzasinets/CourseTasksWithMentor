@@ -1,0 +1,2 @@
+add_executable(testCatch_run testTree.cpp)
+target_link_libraries(testCatch_run redBlackTree_lib)

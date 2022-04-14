@@ -273,8 +273,8 @@ bool Tree<Key>::findThenInsert(Nod *theNod) {
 
             stack.push(tempNod->rightChild);
         }
-
     }
+    return false;
 
 }
 
@@ -586,6 +586,7 @@ void Tree<Key>::remove(const Key &key) {
         eraseCase2(nodToErase);
     }
 }
+
 
 
 #endif //Tree_H_
