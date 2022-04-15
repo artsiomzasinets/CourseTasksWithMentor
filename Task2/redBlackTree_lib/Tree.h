@@ -1,7 +1,7 @@
 #ifndef Tree_H_
 #define Tree_H_
 
-//#define DEBUG
+
 
 #include<stack>
 #include<iostream>
@@ -12,11 +12,11 @@ class Tree {// RB tree
 public:
     Tree(size_t);
     ~Tree();
-#ifdef DEBUG
-    void print() const;
-#endif
+
+    bool findElem(Key);
     void insert(Key);
     void remove(const Key&);
+    Key thelatestRemovedElem{};
 private:
     enum class COLOR:char{red, black};
     struct Nod{
@@ -62,9 +62,7 @@ private://erase cases
     void eraseCase1(Nod*);// theNod is red and have only leafs
     void eraseCase2(Nod*);// theNod have only one leaf
 
-    void eraseCase3(Nod*);//theNod is black and have only leafs
-    void eraseCase31(Nod*);
-    void eraseCase32(Nod*);
+    void eraseCase3(Nod*,bool);//theNod is black and have only leafs
 
 };
 template<typename Key>
@@ -78,32 +76,34 @@ using TNod = typename Tree<Key>::Nod*;
 template<typename Key>
 using TColor = typename Tree<Key>::COLOR;
 
-#ifdef DEBUG
-template<typename Key>
-void Tree<Key>::print() const{
-    std::stack<Nod *> stack;
-    stack.push(root);
 
-    while (stack.size() != 0) {
-        Nod *tempNode = stack.top();
+template<typename Key>
+bool Tree<Key>::findElem(Key theKey) {
+    if(root == nullptr)
+        return false;
+
+    std::stack<Nod*> stack;
+    stack.push(root);
+    Nod* tempNod;
+
+    while (stack.size() != 0){
+        tempNod = stack.top();
         stack.pop();
 
-        std::cout << "key/color:" << tempNode->key << '/';
-        if( tempNode->color == COLOR::black)
-            std::cout << "black" << std::endl;
-        else
-            std::cout << "red" << std::endl;
+        if(tempNod == &emptyNod)
+            break;
 
-        if (tempNode->rightChild != &emptyNod) {
-            stack.push(tempNode->rightChild);
-        }
-        if (tempNode->leftChild != &emptyNod) {
-            stack.push(tempNode->leftChild);
-        }
+        if(tempNod->key == theKey)
+            return true;
 
+        if(tempNod->key > theKey)
+            stack.push(tempNod->leftChild);
+
+        if(tempNod->key < theKey)
+            stack.push(tempNod->rightChild);
     }
+    return false;
 }
-#endif
 
 template<typename Key>
 Tree<Key>::Tree(size_t size) {
@@ -371,9 +371,6 @@ void Tree<Key>::insert(Key key) {
     if(findThenInsert(theNod)){
         checkAfterInsert(theNod);
     }else{
-#ifdef DEBUG
-        std::cout << "Elem exists! " << std::endl;
-#endif
         return;
     }
 }
@@ -406,7 +403,7 @@ TNod<Key> Tree<Key>::findEraseNod(const Key& key){
 
 template<typename Key>
 TNod<Key> Tree<Key>::findDelete(Nod *theNod) {//find a max element in subtree then swap
-    Nod* tempNod = theNod;
+    Nod* tempNod = theNod->leftChild;
     while (true){
         if(tempNod->rightChild == &emptyNod){
             theNod->key = tempNod->key;
@@ -443,15 +440,24 @@ void Tree<Key>::eraseCase2(Nod *theNod) {
 }
 
 template<typename Key>
-void Tree<Key>::eraseCase3(Nod *theNod) {
+void Tree<Key>::eraseCase3(Nod *theNod,bool isDeleted) {
     if(theNod->parent == nullptr){
         theNod->color = COLOR::black;
         root = theNod;
         return;
     }
 
+
     Nod* parent = theNod->parent;
     Nod* sibl = sibling(theNod);
+
+    if(isDeleted == false){
+        if(parent->leftChild == theNod){
+            parent->leftChild = &emptyNod;
+        }else{
+            parent->rightChild = &emptyNod;
+        }
+    }//TODO
 
     if(parent->color == COLOR::red){//silbing is only black
 
@@ -527,7 +533,7 @@ void Tree<Key>::eraseCase3(Nod *theNod) {
                     rotateRight(parent);
                 }else{//doesn't have a red child
                     sibl->color = COLOR::red;
-                    eraseCase3(parent);
+                    eraseCase3(parent,true);
                 }
             }else{//parent->rightChild == sibl
                 if(siblLeftChild->color == COLOR::red){
@@ -539,7 +545,7 @@ void Tree<Key>::eraseCase3(Nod *theNod) {
                     rotateLeft(parent);
                 }else{//doesn't have a red child
                     sibl->color = COLOR::red;
-                    eraseCase3(parent);
+                    eraseCase3(parent,true);
                 }
             }
         }
@@ -558,12 +564,12 @@ void Tree<Key>::remove(const Key &key) {
     }
     Nod* nodToErase = findEraseNod(key);
 
+
     if(nodToErase == nullptr){
-#ifdef DEBUG
-        std::cout << "Elem doesn't exist" << std::endl;
-#endif
         return;
     }
+
+    thelatestRemovedElem = nodToErase->key;
 
     if(nodToErase->parent == nullptr){
         //delete root;
@@ -571,16 +577,15 @@ void Tree<Key>::remove(const Key &key) {
     }
 
 
-
     if(nodToErase->leftChild != &emptyNod && nodToErase->rightChild != &emptyNod) {
-        nodToErase = findDelete(nodToErase->leftChild);
+        nodToErase = findDelete(nodToErase);
     }
 
     if(nodToErase->leftChild == &emptyNod && nodToErase->rightChild == &emptyNod){
         if(nodToErase->color == COLOR::red){
             eraseCase1(nodToErase);
         }else{// nodToErase is black
-            eraseCase3(nodToErase);
+            eraseCase3(nodToErase,false);
         }
     }else {// nodToErase has one leaf
         eraseCase2(nodToErase);

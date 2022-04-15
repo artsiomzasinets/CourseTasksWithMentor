@@ -7,19 +7,25 @@
 
 
 TEST_CASE("Check insert method and remove of Black-red tree int variables","[tree test]"){
-    size_t size = 1000000;
+    const int size = 50;
     Tree<int> obj(size);
+    for(int i = 0; i < size; ++i){
+        obj.insert(i);
+    }
 
-    std::mt19937 engine;
-    std::random_device device;
-    engine.seed(device());
-    std::uniform_int_distribution<int> distribution(0, 1000000);
-    for(size_t i = 0; i < size; ++i){
-        obj.insert(distribution(engine));
+    SECTION("Testing for deleting '3' "){
+        obj.remove(3);
+        REQUIRE(obj.thelatestRemovedElem == 3);
     }
-    for(size_t i = 0; i < size; ++i){
-        obj.remove(distribution(engine));
+    SECTION("Find element"){
+        CHECK(obj.findElem(45) == true);
     }
+    SECTION("Testing for deleting '45' "){
+        obj.remove(45);
+        REQUIRE(obj.findElem(45) == false);
+    }
+
+
 
 }
 
