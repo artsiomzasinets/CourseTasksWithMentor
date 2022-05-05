@@ -1,0 +1,9 @@
+E:/C++ with mentor/CourseTasksWithMentor/Task3/cmake-build-release/CMakeFiles/Task3.dir
+E:/C++ with mentor/CourseTasksWithMentor/Task3/cmake-build-release/CMakeFiles/edit_cache.dir
+E:/C++ with mentor/CourseTasksWithMentor/Task3/cmake-build-release/CMakeFiles/rebuild_cache.dir
+E:/C++ with mentor/CourseTasksWithMentor/Task3/cmake-build-release/Currency/CMakeFiles/Currency.dir
+E:/C++ with mentor/CourseTasksWithMentor/Task3/cmake-build-release/Currency/CMakeFiles/edit_cache.dir
+E:/C++ with mentor/CourseTasksWithMentor/Task3/cmake-build-release/Currency/CMakeFiles/rebuild_cache.dir
+E:/C++ with mentor/CourseTasksWithMentor/Task3/cmake-build-release/Server/CMakeFiles/Server.dir
+E:/C++ with mentor/CourseTasksWithMentor/Task3/cmake-build-release/Server/CMakeFiles/edit_cache.dir
+E:/C++ with mentor/CourseTasksWithMentor/Task3/cmake-build-release/Server/CMakeFiles/rebuild_cache.dir
