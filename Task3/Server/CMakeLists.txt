@@ -10,11 +10,13 @@ conan_basic_setup()
 
 add_executable(Server  ${HEADERS} ${SOURCES})
 
+include_directories(../Currency)
+target_link_libraries(Server  ../Currency)
 
-target_link_libraries(Server PUBLIC ${CONAN_LIBS})
+target_link_libraries(Server ${CONAN_LIBS})
 
 if(MINGW)
-    target_link_libraries(Server PUBLIC ws2_32)
+    target_link_libraries(Server ws2_32)
 endif()
 
 set_target_properties(

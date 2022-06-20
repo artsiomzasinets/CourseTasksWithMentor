@@ -8,7 +8,7 @@
 #include <map>
 #include <boost/core/noncopyable.hpp>
 
-enum class Value:short{USD,EUR,BYR, RUB, UAH,PLN};
+enum class Value:short{USD = 1,EUR,BYR, RUB, UAH,PLN};
 
 class Currency: boost::noncopyable_::noncopyable{
 public:

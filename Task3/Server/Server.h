@@ -6,6 +6,8 @@
 #define SERVER_H_
 
 #include <boost/asio.hpp>
+#include "Currency.h"
+
 
 
 class Server {
