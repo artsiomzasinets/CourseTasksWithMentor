@@ -12,7 +12,7 @@
 #include <vector>
 #include <thread>
 
-#define DEBUG
+//#define DEBUG
 
 class client: boost::noncopyable{
 public:

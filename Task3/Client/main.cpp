@@ -23,7 +23,10 @@ int main(int argc, char *argv[]){
                 break;
             }
             auto result = clientConnection.sendAndReturnResult(number,choice);
+            std::cout << '\n';
             for(auto i : result){
+                if(i == '\0')
+                    break;
                 std::cout << i;
             }
             std::cout << std::endl;

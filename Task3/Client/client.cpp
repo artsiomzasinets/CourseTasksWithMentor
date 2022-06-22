@@ -5,8 +5,6 @@
 #include "client.h"
 
 
-
-
 client::client(boost::asio::ip::tcp::endpoint &endP, boost::asio::io_context &context) :
         endpoint(endP), socket(context), ioContext(context){
 }
@@ -16,22 +14,23 @@ client::~client(){
 }
 
 std::vector<uint8_t> client::sendAndReturnResult(uint64_t numberOfMoney, uint16_t value){
-    std::vector<uint8_t> vBuffer(32);
-    std::string request = std::to_string(value) + ' ' +std::to_string(numberOfMoney);
-    socket.connect(endpoint, errorCode);
+    std::vector<uint8_t> vBuffer(1024);
+    std::string request = std::to_string(value) + ' ' + std::to_string(numberOfMoney);
+    if(!socket.is_open()){
+        socket.connect(endpoint, errorCode);
+    }
     if(errorCode){
         std::cout << "Error!Can't connect!Message:" << errorCode.message() << std::endl;
     }else{
-        if(socket.is_open()){
 #ifdef DEBUG
-            std::cout << "Connected and the socket is open" << std::endl;
+        std::cout << "Connected and the socket is open" << std::endl;
 #endif
-            readData(vBuffer);// async read
-            socket.write_some(boost::asio::buffer(request.data(),  request.size()),errorCode);
-            if(errorCode){
-                std::cout << "Error!Can't write!Message:" << errorCode.message() << std::endl;
-            }
+        readData(vBuffer);// async read
+        socket.write_some(boost::asio::buffer(request.data(), request.size()), errorCode);
+        if(errorCode){
+            std::cout << "Error!Can't write!Message:" << errorCode.message() << std::endl;
         }
+
     }
 
 
@@ -39,15 +38,13 @@ std::vector<uint8_t> client::sendAndReturnResult(uint64_t numberOfMoney, uint16_
     return vBuffer;
 }
 
-void client::readData( std::vector<uint8_t>& vBuffer){//async read
+void client::readData(std::vector<uint8_t> &vBuffer){//async read
     boost::asio::async_read(socket, boost::asio::buffer(vBuffer.data(), vBuffer.size()),
-                            [this,&vBuffer](boost::system::error_code error, uint32_t length){
+                            [this, &vBuffer](boost::system::error_code error, uint32_t length){
                                 if(error){
-                                    if(errorCode.value() == 2){
-                                        std::cout << "End of reading" << std::endl;
-                                    }else{
+#ifdef DEBUG
                                         std::cout << "Failed. Message: " << errorCode.message() << std::endl;
-                                    }
+#endif
                                 }else{
 #ifdef DEBUG
                                     std::cout << "\nRead " << length << " bytes. Message: ";
