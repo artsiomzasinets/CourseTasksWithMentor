@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.23)
 project(Server)
 
-set(HEADERS Server.h)
-set(SOURCES Server.cpp main.cpp)
+set(HEADERS Server.h ../Currency/Currency.h)
+set(SOURCES Server.cpp main.cpp ../Currency/Currency.cpp)
 
 include(../buildconan/conanbuildinfo.cmake)
 conan_basic_setup()
@@ -11,10 +11,14 @@ conan_basic_setup()
 add_executable(Server  ${HEADERS} ${SOURCES})
 
 
-target_link_libraries(Server PUBLIC ${CONAN_LIBS})
+#include_directories(Server ../Currency)
+#target_link_libraries(Server Currency) it doesn't work, i have no idea why
+#target_include_directories(Server  ../Currency)
+
+target_link_libraries(Server ${CONAN_LIBS})
 
 if(MINGW)
-    target_link_libraries(Server PUBLIC ws2_32)
+    target_link_libraries(Server ws2_32)
 endif()
 
 set_target_properties(

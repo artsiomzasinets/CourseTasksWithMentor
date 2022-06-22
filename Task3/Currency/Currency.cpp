@@ -62,26 +62,48 @@ void Currency::showRatioOfCurrency(){
 
 
 
-void Currency::convertor(double number, Value outObj){
-    std::cout.setf(std::cout.fixed);
-    std::cout.precision(3);
-    std::cout.width(15);
-    std::cout << number;
-    std::cout << "\t|";
-    printTypeOfCurrency(outObj);
-    std::cout << '\n';
+std::string Currency::convertor(double number, Value outObj){
+    std::string  temp{};
+    temp += std::to_string(number) + "\t|";
+    switch(outObj){
+        case Value::USD: temp+=  "USD ";
+            break;
+        case Value::EUR: temp+= "EUR ";
+            break;
+        case Value::BYR: temp+= "BYR ";
+            break;
+        case Value::RUB: temp+= "RUB ";
+            break;
+        case Value::PLN: temp+= "PLN ";
+            break;
+        case Value::UAH: temp+= "UAH ";
+            break;
+    }
+    temp += '\n';
 
     for(auto i : ratioOfCurrency){
         if(outObj == i.first){
             continue;
         }
-        std::cout.width(15);
-        std::cout <<convertCurrency(outObj,i.first,number);
-        std::cout << "\t|";
-        printTypeOfCurrency(i.first);
-        std::cout << '\n';
+
+        temp += std::to_string(convertCurrency(outObj,i.first,number)) + "\t|";
+        switch(outObj){
+            case Value::USD: temp+=  "USD ";
+                break;
+            case Value::EUR: temp+= "EUR ";
+                break;
+            case Value::BYR: temp+= "BYR ";
+                break;
+            case Value::RUB: temp+= "RUB ";
+                break;
+            case Value::PLN: temp+= "PLN ";
+                break;
+            case Value::UAH: temp+= "UAH ";
+                break;
+        }
+        temp +=  '\n';
     }
-    std::cout << std::endl;
+    return temp;
 }
 
 void Currency::show(){

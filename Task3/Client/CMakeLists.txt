@@ -5,7 +5,7 @@ project(client)
 include(../buildconan/conanbuildinfo.cmake) # add this before executable files!!!
 conan_basic_setup()
 
-add_executable(client main.cpp)
+add_executable(client main.cpp client.cpp client.h)
 
 
 target_link_libraries(client ${CONAN_LIBS})

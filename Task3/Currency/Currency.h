@@ -6,11 +6,11 @@
 #define CURRENCY_H_
 #include <iostream>
 #include <map>
-#include <boost/core/noncopyable.hpp>
 
-enum class Value:short{USD,EUR,BYR, RUB, UAH,PLN};
 
-class Currency: boost::noncopyable_::noncopyable{
+enum class Value:short{USD = 1,EUR,BYR, RUB, UAH,PLN};
+
+class Currency{
 public:
     Currency(Value);
     Currency(Value,double );
@@ -21,10 +21,9 @@ public:
     Currency operator-(const Currency&) const;
 
     static void showRatioOfCurrency();//one USD, print ratioOfCurrency
-    static void convertor(double, Value);// arguments 10 EUR
+    static std::string convertor(double, Value);// arguments 10 EUR
     void show();//just print typeOfCurrency and numberOfCurrency
 
-private:
     static void printTypeOfCurrency(Value);
     static double convertCurrency(Value,Value,double);
 public:

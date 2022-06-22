@@ -1,43 +1,38 @@
-#include <boost/asio.hpp>
-#include <boost/thread.hpp>
-#include <iostream>
 
 
-using namespace boost::asio;
-io_service service;
+#include "client.h"
 
 
-ip::tcp::endpoint ep( ip::address::from_string("127.0.0.1"), 8001);
-size_t read_complete(char * buf, const boost::system::error_code & err, size_t bytes)
-{
-    if (err)
-        return 0;
-   bool found = std::find(buf, buf + bytes, '\n') < buf + bytes;
-    // we read one-by-one until we get to enter, no buffering
-    return found ? 0 : 1;
-}
-void sync_echo(std::string msg)
-{
-    msg += "\n";
-    ip::tcp::socket sock(service);
-    sock.connect(ep);
-    sock.write_some(buffer(msg));
-    char buf[1024];
-    int bytes = read(sock, buffer(buf), boost::bind(read_complete,buf,
-                                                    boost::placeholders::_1,boost::placeholders::_2));
-    std::string copy(buf, bytes - 1);
-    msg = msg.substr(0, msg.size() - 1);
-    std::cout << "server echoed our " << msg << ": "<< (copy == msg ? "OK" : "FAIL") << std::endl;
-    sock.close();
-}
-int main(int argc, char* argv[])
-{
-    char* messages[] = { "John says hi", "so does James", "Lucy just got home", "Boost.Asio is Fun!", 0 };
-    boost::thread_group threads;
-    for (char ** message = messages; *message; ++message)
-    {
-        threads.create_thread( boost::bind(sync_echo, *message));
-        boost::this_thread::sleep( boost::posix_time::millisec(100));
+const char* ipAddress = "127.0.0.1";
+const short portNumber = 8080;
+
+int main(int argc, char *argv[]){
+    boost::asio::io_context ioContext;
+    boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::make_address(ipAddress),
+                                            portNumber);
+    client clientConnection(endpoint, ioContext);
+    while(true){
+        std::cout << "Enter number of money:";
+        int number;
+        std::cin >> number;
+        std::cout << "\t\tChoose currency\n1-USD\n2-EUR\n3-BYR\n4-RUB\n5-UAH\n6-PLN\n7-exit\nChoose(1-7):";
+        int choice;
+        std::cin >> choice;
+        if(choice >= 1 && choice <=7){
+            if(choice == 7){
+                break;
+            }
+            auto result = clientConnection.sendAndReturnResult(number,choice);
+            std::cout << '\n';
+            for(auto i : result){
+                if(i == '\0')
+                    break;
+                std::cout << i;
+            }
+            std::cout << std::endl;
+        }
     }
-    threads.join_all();
+
+
+
 }
